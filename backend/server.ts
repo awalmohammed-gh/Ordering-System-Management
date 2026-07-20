@@ -2,6 +2,8 @@ import "dotenv/config"
 
 import express from "express"
 import { connectDB } from "./config/db.js";
+import { connectCloudinary } from "./config/cluodinary.js";
+import productRouter from "./routes/productRoutes.js";
 
 const app = express()
 
@@ -12,13 +14,12 @@ const port = process.env.PORT || 3000;
 
 
 //database
-await connectDB()
+await connectDB();
+connectCloudinary();
 
 
 //api endpoint
-app.get("/", (req,res) =>{
-    res.json({message:"server is live"})
-})
+app.use("/api/product", productRouter)
 
 //listen to server
 app.listen(port, () =>{
