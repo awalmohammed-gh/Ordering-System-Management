@@ -1,4 +1,4 @@
-import mongoose, {Schema, Document} from "mongoose";
+import mongoose, {Schema, Document, Model} from "mongoose";
 
 interface IProduct extends Document {
   name: string;
@@ -14,4 +14,4 @@ const productSchema = new Schema<IProduct>({
     category:{type:String, required:true}
 },{timestamps:true});
 
-export const Product = mongoose.models.Product || mongoose.model<IProduct>("Product", productSchema)
+export const Product : Model<IProduct> = mongoose.models.Product || mongoose.model<IProduct>("Product", productSchema)
