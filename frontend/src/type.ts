@@ -15,11 +15,11 @@ export interface ProductCustomization {
 }
 
 export interface Product {
-  id: string;
+  _id: string;
   name: string;
   price: number;
   finalPrice?: number;
-  image: string[];
+  image: string;
   category: string;
   customization?: ProductCustomization;
 }

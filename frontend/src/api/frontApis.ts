@@ -24,3 +24,14 @@ export const listProduct = () =>{
 export const deleteProduct = (id:string) =>{
     return api.delete(`product/remove-product/${id}`)
 }
+
+
+//orders
+
+export const listOrders = () =>{
+    return api.get("/order/all-orders")
+}
+
+export const updateOrderStatus = (orderId:string, data: string) => {
+  return api.get("/order/status", {orderId, data});
+};

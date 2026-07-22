@@ -13,6 +13,8 @@ import AddProduct from "../pages/Admin/AddProduct";
 import ListProduct from "../pages/Admin/ListProduct";
 import Revenue from "../pages/Admin/Revenue";
 import Orders from "../pages/Admin/Orders";
+import CashierLayout from "../layout/CashierLayout";
+import CheckOrders from "../pages/Cashier/CheckOrders";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -37,6 +39,10 @@ export const router = createBrowserRouter(
         <Route path="products" element={<ListProduct />} />
         <Route path="revenue" element={<Revenue />} />
         <Route path="orders" element={<Orders />} />
+      </Route>
+
+      <Route path="/cashier" element={<CashierLayout/>}>
+        <Route index element={<CheckOrders/>}/>
       </Route>
     </>,
   ),

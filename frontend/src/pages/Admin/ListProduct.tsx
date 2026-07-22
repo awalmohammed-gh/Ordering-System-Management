@@ -176,14 +176,14 @@ const ListProduct = () => {
               ) : (
                 filteredProducts.map((product) => (
                   <tr
-                    key={product.id}
+                    key={product._id}
                     className="hover:bg-[#FFFBF5] transition-colors duration-150"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {product.image ? (
                           <img
-                            src={product.image[0]}
+                            src={product.image}
                             alt={product.name}
                             className="w-10 h-10 rounded-xl object-cover"
                           />
@@ -203,14 +203,17 @@ const ListProduct = () => {
                       {product.category || "Uncategorized"}
                     </td>
                     <td className="px-6 py-4 font-medium text-[#78350F]">
-                      GHS {product.price?.toFixed(2)}
+                      {product.price?.toLocaleString("en-GH",{
+                        style:"currency",
+                        currency:"GHS"
+                      })}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => {
                             // Navigate to edit or open modal
-                            console.log("Edit product:", product.id);
+                            console.log("Edit product:", product._id);
                           }}
                           className="p-2 rounded-xl hover:bg-[#FFF7ED] text-[#6B7280] hover:text-[#D97706] transition-all duration-200"
                           aria-label="Edit product"
@@ -219,8 +222,10 @@ const ListProduct = () => {
                         </button>
                         <button
                           onClick={() => {
+                            handleDelete(product._id);
                             setSelectedProduct(product);
                             setShowDeleteModal(true);
+                            
                           }}
                           className="p-2 rounded-xl hover:bg-red-50 text-[#6B7280] hover:text-red-500 transition-all duration-200"
                           aria-label="Delete product"

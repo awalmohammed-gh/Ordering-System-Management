@@ -5,5 +5,6 @@ const orderRouter = express.Router();
 
 orderRouter.post("/place-order", placeOrder)
 orderRouter.get("/all-order", allOrders);
+orderRouter.("/all-order", allOrders);
 
 export default orderRouter;
