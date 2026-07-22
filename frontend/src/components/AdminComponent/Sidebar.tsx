@@ -9,12 +9,20 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { adminLogout } from "../../api/frontApis";
+import Toast from "../../ui/Toast";
+import Loading from "../../ui/Loading";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [loading, setLoading] = useState(false);
+   const [toast, setToast] = useState<{
+     message: string;
+     type: "success" | "error" | "info";
+   } | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -77,6 +85,38 @@ const Sidebar = () => {
   const isActive = (path: string) => {
     return location.pathname === path;
   };
+
+  const handleLogout = async() =>{
+    try {
+       setLoading(true);
+       const {data} = await adminLogout();
+       if(data.success){
+       
+         setToast(
+         { message:"logout successfully",
+          type:"success"}
+         )
+          navigate("/admin-login");
+       }else{
+         setToast({
+          message:"Error, Something went wrong",
+          type:"error"
+         })
+       }
+    } catch (error) {
+      console.error(error);
+      setToast({
+        message: "Error, Something went wrong",
+        type: "error",
+      });
+    }
+  }
+
+  if(loading){
+    return <Loading/>
+  }
+
+
 
   return (
     <>
@@ -220,7 +260,7 @@ const Sidebar = () => {
           <button
             onClick={() => {
               // Handle logout
-              console.log("Logout clicked");
+              handleLogout();
             }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#6B7280] hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
           >
@@ -232,6 +272,18 @@ const Sidebar = () => {
           </button>
         </div>
       </aside>
+
+      <div >
+          {
+    toast && (
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast(null)}
+      />
+    )
+  }
+      </div>
 
       {/* Custom scrollbar styles */}
       <style>{`

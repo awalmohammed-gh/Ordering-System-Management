@@ -4,9 +4,14 @@ import Sidebar from "../components/AdminComponent/Sidebar";
 const AdminLayout = () => {
   return (
     <div className="flex min-h-screen bg-[#FFFBF5]">
-      <Sidebar />
-      <main className="flex-1 ml-0 md:ml-65 p-4 sm:p-6 transition-all duration-300">
+      <div className="w-80">
+        <Sidebar />
+      </div>
+
+      <main className="flex-1 p-4 sm:p-6">
+        <div>
           <Outlet />
+        </div>
       </main>
     </div>
   );

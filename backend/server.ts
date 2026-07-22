@@ -1,9 +1,13 @@
 import "dotenv/config"
 
 import express from "express"
+import cors from "cors"
 import { connectDB } from "./config/db.js";
 import { connectCloudinary } from "./config/cluodinary.js";
 import productRouter from "./routes/productRoutes.js";
+import cookieParser from "cookie-parser";
+import orderRouter from "./routes/orderRoutes.js";
+import adminRouter from "./routes/adminRoutes.js";
 
 const app = express()
 
@@ -11,6 +15,13 @@ const app = express()
 const port = process.env.PORT || 3000;
 
 //middleware
+app.use(cors({
+    origin:"http://localhost:5174",
+    credentials:true
+}));
+app.use(express.json());
+app.use(cookieParser())
+
 
 
 //database
@@ -19,7 +30,9 @@ connectCloudinary();
 
 
 //api endpoint
-app.use("/api/product", productRouter)
+app.use("/api/product", productRouter);
+app.use("/api/order", orderRouter);
+app.use("/api/admin", adminRouter);
 
 //listen to server
 app.listen(port, () =>{

@@ -1,6 +1,9 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { Coffee, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { adminLogin } from "../../api/frontApis";
+import Loading from "../../ui/Loading";
+import ErrorMessage from "../../ui/ErrorMessage";
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +14,7 @@ const AdminLogin = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -22,23 +26,33 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true)
     setError(null);
     setIsSubmitting(true);
 
     try {
-      // No auth endpoint/context exists yet — nothing real to call here
-      if(formData.email === "mohammed0011@gmail.com" && formData.password === "123456789"){
-          console.log("Admin login attempt", formData);
-          await new Promise((resolve) => setTimeout(resolve, 800));
-          navigate("/admin/dashboard")
-      }
+        const {data} = await adminLogin(formData);
+        if(data.success){
+          navigate("/admin/dashboard");
+        }else{
+          setError(data.message)
+        }
      
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
+      setLoading(false)
     }
   };
+
+  if(loading){
+    return <Loading/>
+  }
+
+  if(error !== null){
+    return <ErrorMessage/>
+  }
 
   return (
     <div className="min-h-screen bg-[#FFFBF5] flex items-center justify-center p-6">
