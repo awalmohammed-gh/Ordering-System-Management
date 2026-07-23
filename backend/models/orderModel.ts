@@ -3,19 +3,20 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 interface OrderItem {
   productId: mongoose.Types.ObjectId;
   quantity: number;
-  size?: string;
 }
 
 export interface OrderDocument extends Document {
   orderName: string;
+  notes?: string;
   items: OrderItem[];
-  paymentMethod: "cash" | "emoney";
+  paymentMethod: "cashier" | "paystack";
   amountReceived?: number;
   total: number;
   change?: number;
-  paymentStatus: "paid" | "pending" | "failed";
-  orderStatus: "pending" | "preparing" | "ready" | "completed";
+  paymentStatus: "paid" | "pending" | "failed" | "unpaid";
+  status: "pending" | "preparing" | "ready" | "completed";
   createdAt: Date;
+  updatedAt: Date;
 }
 
 const orderSchema = new Schema<OrderDocument>(
@@ -23,35 +24,38 @@ const orderSchema = new Schema<OrderDocument>(
     orderName: {
       type: String,
       required: true,
+      trim: true,
+    },
+
+    notes: {
+      type: String,
+      default: "",
     },
 
     items: [
       {
         productId: {
-          type: mongoose.Schema.Types.ObjectId,
+          type: Schema.Types.ObjectId,
           ref: "Product",
           required: true,
         },
-
         quantity: {
           type: Number,
           required: true,
-        },
-
-        size: {
-          type: String,
+          min: 1,
         },
       },
     ],
 
     paymentMethod: {
       type: String,
-      enum: ["cash", "emoney"],
+      enum: ["cashier", "paystack"],
       required: true,
     },
 
     amountReceived: {
       type: Number,
+      default: 0,
     },
 
     total: {
@@ -61,15 +65,16 @@ const orderSchema = new Schema<OrderDocument>(
 
     change: {
       type: Number,
+      default: 0,
     },
 
     paymentStatus: {
       type: String,
-      enum: ["paid", "pending", "failed"],
+      enum: ["paid", "pending", "failed", "unpaid"],
       default: "pending",
     },
 
-    orderStatus: {
+    status: {
       type: String,
       enum: ["pending", "preparing", "ready", "completed"],
       default: "pending",
@@ -80,4 +85,5 @@ const orderSchema = new Schema<OrderDocument>(
   },
 );
 
-export const Order : Model<OrderDocument> = mongoose.models.Order || mongoose.model<OrderDocument>("Order", orderSchema);
+export const Order: Model<OrderDocument> =
+  mongoose.models.Order || mongoose.model<OrderDocument>("Order", orderSchema);

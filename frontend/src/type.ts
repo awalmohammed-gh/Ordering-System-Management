@@ -41,3 +41,25 @@ export interface AddProduct {
   image: File | null;
   isAvailable: boolean;
 }
+
+export interface OrderData {
+  orderName: string;
+  notes?: string;
+  items: [];
+  total: number;
+  paymentMethod: "cashier" | "paystack";
+  paymentStatus: "paid" | "unpaid";
+  status:string
+}
+
+export interface UpdateStatus{
+    orderId:string,
+    status:string
+}
+
+export interface PaymentData {
+  orderId: string;
+  paymentMethod: "cashier" | "paystack";
+  paymentStatus: "unpaid" | "paid";
+  status: "pending" | "processing";
+}

@@ -9,6 +9,7 @@ import {
   type SetStateAction,
 } from "react";
 import type { CartItems, Product } from "../type";
+import { listProduct } from "../api/frontApis";
 
 interface ODMContextType {
   cartItems: CartItems[];
@@ -20,7 +21,8 @@ interface ODMContextType {
   updateQuantity: (productId: string, quantity: number) => void;
   openCustomize:(product:Product) => void
   closeCustomize:() => void;
-  grandTotal:number
+  grandTotal:number;
+  clearCart:() =>void;
 
   isCartOpen: boolean;
   setIsCartOpen: Dispatch<SetStateAction<boolean>>;
@@ -40,13 +42,15 @@ export const ODMContextProvider = ({ children }: { children: ReactNode }) => {
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showCustomization, setShowCustomization] = useState(false);
-  const [selectedProduct,setSelectedProduct] = useState<Product | null>(null)
+  const [selectedProduct,setSelectedProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product | []>([])
+  
 
   const addToCart = (product: Product, quantity = 1) => {
        setCartItems((prev) =>{
-         const checkExist = prev.find((item) => item.product.id === product.id);
+         const checkExist = prev.find((item) => item.product._id === product._id);
          if(checkExist){
-         return  prev.map((item) => item.product.id === product.id ? {...item, quantity:item.quantity + quantity} : item)
+         return  prev.map((item) => item.product._id === product._id ? {...item, quantity:item.quantity + quantity} : item)
          }
 
         return [...prev, {product, quantity}]
@@ -58,7 +62,7 @@ export const ODMContextProvider = ({ children }: { children: ReactNode }) => {
   const increaseQuantity = (productId: string) => {
     setCartItems((prev) =>
       prev.map((item) =>
-        item.product.id === productId
+        item.product._id === productId
           ? {
               ...item,
               quantity: item.quantity + 1,
@@ -71,7 +75,7 @@ export const ODMContextProvider = ({ children }: { children: ReactNode }) => {
   const decreaseQuantity = (productId: string) => {
     setCartItems((prev) =>
       prev.map((item) =>
-        item.product.id === productId
+        item.product._id === productId
           ? {
               ...item,
               quantity: item.quantity - 1,
@@ -102,7 +106,7 @@ export const ODMContextProvider = ({ children }: { children: ReactNode }) => {
     }
     setCartItems((prev) =>
       prev.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item,
+        item.product._id === productId ? { ...item, quantity } : item,
       ),
     );
   };
@@ -111,7 +115,7 @@ export const ODMContextProvider = ({ children }: { children: ReactNode }) => {
 
   const removeFromCart = (productId: string) => {
     setCartItems((prev) =>
-      prev.filter((item) => item.product.id !== productId),
+      prev.filter((item) => item.product._id !== productId),
     );
 
     localStorage.removeItem("cart")
@@ -121,6 +125,14 @@ export const ODMContextProvider = ({ children }: { children: ReactNode }) => {
   const grandTotal = useMemo(() =>{
     return cartItems.reduce((total, item) => total + (item.product.finalPrice ?? item.product.price) * item.quantity, 0)
   },[cartItems])
+
+
+  //clear cart
+  const clearCart = () =>{
+    setCartItems([]);
+  }
+
+
 
     useEffect(() => {
       localStorage.setItem("cart", JSON.stringify(cartItems));
@@ -142,7 +154,8 @@ export const ODMContextProvider = ({ children }: { children: ReactNode }) => {
     openCustomize,
     setSelectedProduct,
     closeCustomize,
-    grandTotal
+    grandTotal,
+    clearCart
   };
   return <ODMContext.Provider value={value}>{children}</ODMContext.Provider>;
 };

@@ -32,7 +32,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     >
       {/* Image Container */}
       <div className="relative h-36 overflow-hidden bg-[#FFFBF5]">
-        <img src={image[0]} alt={name} className="w-full h-full object-cover" />
+        <img src={image} alt={name} className="w-full h-full object-cover" />
 
         {/* Category Badge */}
         <span className="absolute top-2 left-2 bg-[#1F2937]/90 backdrop-blur-md text-white text-[10px] font-medium px-2.5 py-1 rounded-full">

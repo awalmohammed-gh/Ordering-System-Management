@@ -9,12 +9,13 @@ import KitchenDisplay from "../pages/kitchen_display/kitchen_page/KitchenDisplay
 import AdminLogin from "../pages/Admin/AdminLogin";
 import AdminLayout from "../layout/AdminLayout";
 import Dashboard from "../pages/Admin/Dashboard";
-import AddProduct from "../pages/Admin/AddProduct";
 import ListProduct from "../pages/Admin/ListProduct";
 import Revenue from "../pages/Admin/Revenue";
 import Orders from "../pages/Admin/Orders";
 import CashierLayout from "../layout/CashierLayout";
 import CheckOrders from "../pages/Cashier/CheckOrders";
+import AddProduct from "../pages/Admin/AddProduct";
+import PaymentPage from "../pages/Payment";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -23,6 +24,7 @@ export const router = createBrowserRouter(
         <Route index element={<WelcomePage />} />
         <Route path="menu" element={<MenuPage />} />
         <Route path="checkout" element={<CheckoutPage />} />
+        <Route path="payment" element={<PaymentPage />} />
         <Route path="order-confirmation" element={<OrderConfirmation />} />
       </Route>
 

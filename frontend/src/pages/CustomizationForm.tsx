@@ -15,7 +15,14 @@ interface CustomizationOption {
 }
 
 const CustomizationForm = ({ product }: CustomizationFormProps) => {
-  const { addToCart, setIsCartOpen, closeCustomize, cartItems, updateQuantity, removeFromCart} = useODMContext();
+  const {
+    addToCart,
+    setIsCartOpen,
+    closeCustomize,
+    cartItems,
+    updateQuantity,
+    removeFromCart,
+  } = useODMContext();
 
   const [quantity, setQuantity] = useState(1);
 
@@ -85,40 +92,38 @@ const CustomizationForm = ({ product }: CustomizationFormProps) => {
     selectedExtras,
   ]);
 
-  const cartItem = cartItems.find((item) => item.product.id === product.id);
+  const cartItem = cartItems.find((item) => item.product._id === product._id);
   const inCart = !!cartItem;
   const displayQuantity = inCart ? cartItem.quantity : quantity;
 
-
-  const handleDecrease = () =>{
-    if(inCart){
-        if(cartItem.quantity > 1){
-            updateQuantity(product.id, quantity - 1)
-        }else{
-            removeFromCart(product.id)
-        }
-    }else{
-        setQuantity(Math.max(1, quantity - 1))
+  const handleDecrease = () => {
+    if (inCart) {
+      if (cartItem.quantity > 1) {
+        updateQuantity(product._id, cartItem.quantity - 1);
+      } else {
+        removeFromCart(product._id);
+      }
+    } else {
+      setQuantity(Math.max(1, quantity - 1));
     }
-  }
+  };
 
-
-  const handleIncrease = () =>{
-    if(inCart){
-        updateQuantity(product.id, quantity + 1) ;
-    }else{
-        setQuantity((prev) => prev + 1)
+  const handleIncrease = () => {
+    if (inCart) {
+      updateQuantity(product._id, cartItem.quantity + 1);
+    } else {
+      setQuantity((prev) => prev + 1);
     }
-  }
+  };
 
   const finalPrice = useMemo(() => {
-    return (product.price + customizationPrice) * quantity;
-  }, [product.price, customizationPrice, quantity]);
+    return (product.price + customizationPrice) * displayQuantity;
+  }, [product.price, customizationPrice, displayQuantity]);
 
   const handleAddToCart = () => {
     const productCart = {
       ...product,
-      finalPrice,
+      finalPrice: product.price + customizationPrice,
       customization: {
         size: selectedSize,
         temperature: selectedTemperature,
@@ -130,9 +135,26 @@ const CustomizationForm = ({ product }: CustomizationFormProps) => {
       },
     };
 
-    addToCart(productCart, quantity);
+    if (inCart) {
+      // If already in cart, update quantity
+      updateQuantity(product._id, cartItem.quantity + quantity);
+    } else {
+      // Add new item to cart
+      addToCart(productCart, quantity);
+    }
+
     setIsCartOpen(true);
     closeCustomize();
+  };
+
+  const handleCancel = () => {
+    // Reset quantity if not in cart
+    if (!inCart) {
+      setQuantity(1);
+    }
+    closeCustomize();
+    // Optionally open cart sidebar
+    // setIsCartOpen(true);
   };
 
   const optionBase =
@@ -336,7 +358,7 @@ const CustomizationForm = ({ product }: CustomizationFormProps) => {
           <button
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-[#E5E7EB] text-[#1F2937] hover:border-[#D97706] hover:text-[#D97706] transition-all duration-200 flex items-center justify-center active:scale-90 disabled:opacity-40"
             onClick={handleDecrease}
-            disabled={quantity <= 1}
+            disabled={displayQuantity <= 1}
           >
             <Minus size={18} />
           </button>
@@ -350,6 +372,11 @@ const CustomizationForm = ({ product }: CustomizationFormProps) => {
             <Plus size={18} />
           </button>
         </div>
+        {inCart && (
+          <p className="text-xs text-[#6B7280] mt-1.5">
+            Currently in cart: {cartItem.quantity} items
+          </p>
+        )}
       </div>
 
       {/* Summary */}
@@ -380,7 +407,7 @@ const CustomizationForm = ({ product }: CustomizationFormProps) => {
       <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-3 pt-1">
         <button
           className="flex-1 px-6 py-3.5 rounded-2xl border-2 border-[#E5E7EB] text-[#6B7280] font-medium hover:bg-[#FFF7ED] hover:border-[#D97706]/40 hover:text-[#78350F] transition-all duration-200"
-          onClick={() =>{closeCustomize() ; setIsCartOpen(true)}}
+          onClick={handleCancel}
         >
           Cancel
         </button>
@@ -389,9 +416,26 @@ const CustomizationForm = ({ product }: CustomizationFormProps) => {
           onClick={handleAddToCart}
         >
           <ShoppingBag size={18} />
-          Add to Cart · {formatPrice(finalPrice)}
+          {inCart ? "Update Cart" : "Add to Cart"} · {formatPrice(finalPrice)}
         </button>
       </div>
+
+      {/* Custom scrollbar styles */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #D97706;
+          border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #78350F;
+        }
+      `}</style>
     </div>
   );
 };

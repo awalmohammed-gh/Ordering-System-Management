@@ -1,4 +1,4 @@
-import type { AddProduct, AdminLoginData } from "../type"
+import type { AddProduct, AdminLoginData, OrderData, PaymentData, UpdateStatus } from "../type"
 import { api } from "./axios"
 
 
@@ -32,6 +32,15 @@ export const listOrders = () =>{
     return api.get("/order/all-orders")
 }
 
-export const updateOrderStatus = (orderId:string, data: string) => {
-  return api.get("/order/status", {orderId, data});
+export const updateOrderStatus = (orderId:UpdateStatus, status:UpdateStatus ) => {
+  return api.get("/order/status", {orderId, status});
 };
+
+
+export const makeOrder = (data) =>{
+    return api.post("/order/place-order", data)
+}
+
+export const paymentOrder = (data:PaymentData) =>{
+    return api.post("/order/paystack", data)
+}

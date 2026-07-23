@@ -4,20 +4,27 @@ import {
   CheckCircle2,
   Clock,
   ShoppingBag,
-  Smartphone,
   PartyPopper,
+  Banknote,
+  CreditCard,
+  Smartphone,
 } from "lucide-react";
 
 interface ConfirmationState {
-  name: string;
+  orderName: string;
   notes: string;
-  cartItems: Array<{
+  items: Array<{
+    productId: string;
     quantity: number;
-    product: { name: string; price: number; finalPrice?: number };
+    productName?: string;
+    price?: number;
   }>;
-  grandTotal: number;
-  paymentMethod: "momo";
-  momoNumber: string;
+  total: number;
+  paymentMethod: "cashier" | "paystack";
+  paymentStatus: "paid" | "unpaid";
+  orderId: string;
+  status?: string;
+  createdAt?: string;
 }
 
 const OrderConfirmation = () => {
@@ -25,40 +32,8 @@ const OrderConfirmation = () => {
   const navigate = useNavigate();
   const state = location.state as ConfirmationState | null;
 
-  // Estimated wait — simulated only, not a real kitchen/prep status
-  const totalItems = state
-    ? state.cartItems.reduce((sum, item) => sum + item.quantity, 0)
-    : 0;
-  const estimatedSeconds = Math.min(60 + totalItems * 60, 600); 
-
-  const [secondsLeft, setSecondsLeft] = useState(estimatedSeconds);
-  const isReady = secondsLeft <= 0;
-
-  useEffect(() => {
-    if (!state || isReady) return;
-    const interval = setInterval(() => {
-      setSecondsLeft((prev) => Math.max(prev - 1, 0));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [state, isReady]);
-
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("en-GH", {
-      style: "currency",
-      currency: "GHS",
-    }).format(price);
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
-
-  const progress = state
-    ? ((estimatedSeconds - secondsLeft) / estimatedSeconds) * 100
-    : 0;
-
-  if (!state) {
+  // Early return if no state
+  if (!state || !state.items) {
     return (
       <div className="min-h-screen bg-[#FFFBF5] flex items-center justify-center p-6">
         <div className="text-center max-w-sm">
@@ -82,7 +57,69 @@ const OrderConfirmation = () => {
     );
   }
 
-  const { name, notes, cartItems, grandTotal, momoNumber } = state;
+  // Calculate total items safely
+  const totalItems = state.items.reduce(
+    (sum, item) => sum + (item.quantity || 0),
+    0,
+  );
+  const estimatedSeconds = Math.min(60 + totalItems * 60, 600);
+
+  const [secondsLeft, setSecondsLeft] = useState(estimatedSeconds);
+  const isReady = secondsLeft <= 0;
+
+  useEffect(() => {
+    if (isReady) return;
+    const interval = setInterval(() => {
+      setSecondsLeft((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isReady]);
+
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("en-GH", {
+      style: "currency",
+      currency: "GHS",
+    }).format(price);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const progress = ((estimatedSeconds - secondsLeft) / estimatedSeconds) * 100;
+
+  const {
+    orderName,
+    notes,
+    items,
+    total,
+    paymentMethod,
+    paymentStatus,
+    orderId,
+  } = state;
+
+  const getPaymentMethodLabel = (method: string) => {
+    switch (method) {
+      case "cashier":
+        return "Pay at Cashier";
+      case "paystack":
+        return "Paystack";
+      default:
+        return method;
+    }
+  };
+
+  const getPaymentIcon = (method: string) => {
+    switch (method) {
+      case "cashier":
+        return <Banknote className="w-4 h-4 text-[#D97706]" />;
+      case "paystack":
+        return <CreditCard className="w-4 h-4 text-[#D97706]" />;
+      default:
+        return <Smartphone className="w-4 h-4 text-[#D97706]" />;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#FFFBF5] flex items-center justify-center p-4 sm:p-6">
@@ -111,9 +148,10 @@ const OrderConfirmation = () => {
           </h1>
           <p className="text-[#6B7280] mt-1.5">
             {isReady
-              ? `${name}, please come pick it up`
-              : `Thanks, ${name} — payment received, we're on it`}
+              ? `${orderName}, please come pick it up`
+              : `Thanks, ${orderName} — we're on it`}
           </p>
+          <p className="text-xs text-[#6B7280] mt-1">Order #{orderId}</p>
         </div>
 
         {/* Countdown card */}
@@ -126,7 +164,7 @@ const OrderConfirmation = () => {
         >
           {isReady ? (
             <p className="text-[#16A34A] font-semibold text-lg">
-              We'll call "{name}" — see you at the counter
+              We'll call "{orderName}" — see you at the counter
             </p>
           ) : (
             <>
@@ -140,7 +178,7 @@ const OrderConfirmation = () => {
               <div className="w-full h-2 bg-[#FFFBF5] rounded-full mt-4 overflow-hidden">
                 <div
                   className="h-full bg-[#D97706] rounded-full transition-all duration-1000 ease-linear"
-                  style={{ width: `${progress}%` }}
+                  style={{ width: `${Math.min(progress, 100)}%` }}
                 />
               </div>
             </>
@@ -150,7 +188,7 @@ const OrderConfirmation = () => {
         {/* Order details */}
         <div className="bg-white rounded-3xl border border-[#E5E7EB] shadow-[0_1px_2px_rgba(31,41,55,0.06)] overflow-hidden">
           <div className="p-5 space-y-3">
-            {cartItems.map((item, index) => (
+            {items.map((item, index) => (
               <div
                 key={index}
                 className="flex items-center justify-between gap-3 py-1.5 border-b border-[#E5E7EB] last:border-b-0"
@@ -160,14 +198,12 @@ const OrderConfirmation = () => {
                     {item.quantity}
                   </span>
                   <span className="text-sm font-medium text-[#1F2937] truncate">
-                    {item.product.name}
+                    {item.productName ||
+                      `Product ${item.productId.slice(0, 6)}`}
                   </span>
                 </div>
                 <span className="text-sm font-semibold text-[#78350F] tabular-nums shrink-0">
-                  {formatPrice(
-                    (item.product.finalPrice || item.product.price) *
-                      item.quantity,
-                  )}
+                  {formatPrice((item.price || 0) * item.quantity)}
                 </span>
               </div>
             ))}
@@ -181,20 +217,41 @@ const OrderConfirmation = () => {
             <div className="flex items-center justify-between text-lg font-bold pt-3 border-t border-[#E5E7EB]">
               <span className="text-[#1F2937]">Total</span>
               <span className="text-[#78350F] tabular-nums">
-                {formatPrice(grandTotal)}
+                {formatPrice(total || 0)}
               </span>
             </div>
           </div>
 
+          {/* Payment Info */}
           <div className="flex items-center gap-3 px-5 py-4 bg-[#FFFBF5] border-t border-[#E5E7EB]">
             <div className="w-9 h-9 rounded-xl bg-[#D97706]/10 flex items-center justify-center shrink-0">
-              <Smartphone className="w-4 h-4 text-[#D97706]" />
+              {getPaymentIcon(paymentMethod)}
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-[#1F2937]">
+                {getPaymentMethodLabel(paymentMethod)}
+              </p>
+              {paymentMethod === "cashier" && (
+                <p className="text-xs text-[#6B7280]">
+                  Pay at the counter when you pick up
+                </p>
+              )}
+              {paymentMethod === "paystack" && (
+                <p className="text-xs text-[#6B7280]">
+                  Payment completed via Paystack
+                </p>
+              )}
             </div>
             <div>
-              <p className="text-sm font-medium text-[#1F2937]">Mobile Money</p>
-              <p className="text-xs text-[#6B7280]">
-                Payment prompt sent to {momoNumber}
-              </p>
+              <span
+                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                  paymentStatus === "paid"
+                    ? "bg-green-50 text-green-700"
+                    : "bg-yellow-50 text-yellow-700"
+                }`}
+              >
+                {paymentStatus === "paid" ? "Paid" : "Pending Payment"}
+              </span>
             </div>
           </div>
         </div>
